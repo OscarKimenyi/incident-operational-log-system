@@ -10,13 +10,14 @@ const api = axios.create({
   withCredentials: true,
 })
 
-// Request interceptor to add token
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    console.log('API Request:', config.method.toUpperCase(), config.url)
     return config
   },
   (error) => {
@@ -26,21 +27,28 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.config.url, response.status)
+    return response
+  },
   (error) => {
+    console.error('API Error:', error.response?.status, error.config?.url)
+    
     if (error.code === 'ERR_NETWORK') {
       toast.error('Cannot connect to server. Please check if Laravel is running.')
-      console.error('Network Error - Make sure Laravel is running on port 8000')
     } else if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
-      toast.error('Session expired. Please login again.')
+      // Only clear if not on login page
+      if (!window.location.pathname.includes('/login')) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+        toast.error('Session expired. Please login again.')
+      }
     } else if (error.response?.status === 403) {
       toast.error('You do not have permission to perform this action.')
     } else if (error.response?.status === 404) {
-      toast.error('API endpoint not found. Check your routes.')
       console.error('404 Error:', error.config.url)
+      toast.error('API endpoint not found')
     } else if (error.response?.status === 422) {
       const errors = error.response.data.errors
       if (errors) {
