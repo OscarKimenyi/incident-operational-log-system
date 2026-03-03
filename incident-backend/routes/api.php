@@ -10,9 +10,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     
     // Test
-    Route::get('/test', function() {
-        return response()->json(['message' => 'API is working']);
-    });
+    // Route::get('/test', function() {
+    //     return response()->json(['message' => 'API is working']);
+    // });
     
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -27,8 +27,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/incidents/{incident}/assign', [IncidentController::class, 'assign']);
 
     // Users
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/operators', [UserController::class, 'getOperators']);
+    // Route::get('/users', [UserController::class, 'index']);
+    // Route::get('/users/operators', [UserController::class, 'getOperators']);
 
     
 });
