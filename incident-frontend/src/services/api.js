@@ -7,6 +7,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  withCredentials: true,
 })
 
 // Request interceptor to add token
@@ -23,16 +24,23 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor for error handling
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.code === 'ERR_NETWORK') {
+      toast.error('Cannot connect to server. Please check if Laravel is running.')
+      console.error('Network Error - Make sure Laravel is running on port 8000')
+    } else if (error.response?.status === 401) {
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
       window.location.href = '/login'
       toast.error('Session expired. Please login again.')
     } else if (error.response?.status === 403) {
       toast.error('You do not have permission to perform this action.')
+    } else if (error.response?.status === 404) {
+      toast.error('API endpoint not found. Check your routes.')
+      console.error('404 Error:', error.config.url)
     } else if (error.response?.status === 422) {
       const errors = error.response.data.errors
       if (errors) {

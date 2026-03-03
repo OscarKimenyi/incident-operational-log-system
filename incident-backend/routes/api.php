@@ -19,4 +19,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('incidents', IncidentController::class);
     Route::post('/incidents/{incident}/status', [IncidentController::class, 'updateStatus']);
     Route::post('/incidents/{incident}/assign', [IncidentController::class, 'assign']);
+
+    // Users
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/operators', [UserController::class, 'getOperators']);
+
+    // Test
+    Route::get('/test', function() {
+        return response()->json(['message' => 'API is working']);
+    });
 });
+
