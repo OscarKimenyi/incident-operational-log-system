@@ -9,13 +9,27 @@ class RoleSeeder extends Seeder
     public function run()
     {
         $roles = [
-            ['name' => 'admin', 'description' => 'Full system access'],
-            ['name' => 'operator', 'description' => 'Can update incidents and add comments'],
-            ['name' => 'reporter', 'description' => 'Can create and view own incidents'],
+            [
+                'name' => 'admin',
+                'description' => 'Full system access - can manage users, assign incidents, and view all data'
+            ],
+            [
+                'name' => 'operator',
+                'description' => 'Can update incident status and add comments'
+            ],
+            [
+                'name' => 'reporter',
+                'description' => 'Can create incidents and view incidents they reported'
+            ],
         ];
 
         foreach ($roles as $role) {
-            Role::create($role);
+            Role::updateOrCreate(
+                ['name' => $role['name']],
+                ['description' => $role['description']]
+            );
         }
+
+        $this->command->info('Roles seeded successfully!');
     }
 }
