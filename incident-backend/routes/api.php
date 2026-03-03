@@ -8,6 +8,12 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
+    
+    // Test
+    Route::get('/test', function() {
+        return response()->json(['message' => 'API is working']);
+    });
+    
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
@@ -24,9 +30,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/operators', [UserController::class, 'getOperators']);
 
-    // Test
-    Route::get('/test', function() {
-        return response()->json(['message' => 'API is working']);
-    });
+    
 });
 
