@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -23,23 +25,42 @@ class AuthController extends Controller
             ]);
         }
 
+        // Delete existing tokens
+        $user->tokens()->delete();
+        
+        // Create new token
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role->name
+            ],
             'token' => $token,
-            'role' => $user->role->name
+            'message' => 'Login successful'
         ]);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out successfully']);
+        
+        return response()->json([
+            'message' => 'Logged out successfully'
+        ]);
     }
 
     public function me(Request $request)
     {
-        return response()->json($request->user()->load('role'));
+        $user = $request->user()->load('role');
+        
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role->name
+        ]);
     }
 }
