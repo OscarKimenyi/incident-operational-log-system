@@ -6,10 +6,15 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    /**
+     * Handle a login request to the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -17,50 +22,75 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::with('role')->where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found'
+            ], 404);
         }
 
-        // Delete existing tokens
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Invalid password'
+            ], 401);
+        }
+
+        // Delete old tokens
         $user->tokens()->delete();
-        
+
         // Create new token
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role->name
-            ],
-            'token' => $token,
-            'message' => 'Login successful'
+            'success' => true,
+            'message' => 'Login successful',
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role->name ?? 'reporter'
+                ],
+                'token' => $token
+            ]
         ]);
     }
 
+    /**
+     * Log the user out (invalidate the token).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        
+
         return response()->json([
+            'success' => true,
             'message' => 'Logged out successfully'
         ]);
     }
 
+    /**
+     * Get the authenticated User.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function me(Request $request)
     {
         $user = $request->user()->load('role');
-        
+
         return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role->name
+            'success' => true,
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role->name ?? 'reporter'
+            ]
         ]);
     }
 }
